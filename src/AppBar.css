@@ -1,0 +1,47 @@
+/* Toolbar styling */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+}
+
+.logo {
+    flex: 1;
+}
+
+/* Responsive image class */
+.responsive-image {
+    width: 100%;
+    height: auto;
+    /* Maintain aspect ratio */
+    max-width: 150px;
+    /* Set maximum width for the image */
+}
+
+.menu {
+    flex: 3;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.menu a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 18px;
+}
+
+@media (max-width: 768px) {
+    .responsive-image {
+        max-width: 100px;
+        /* Decrease the logo size on smaller screens */
+    }
+
+    .menu a {
+        font-size: 16px;
+        /* Reduce menu font size on smaller screens */
+    }
+}
