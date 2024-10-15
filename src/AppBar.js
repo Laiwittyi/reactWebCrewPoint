@@ -182,6 +182,9 @@ const ResponsiveAppBar = ({ user, handleLogout }) => {
             >
               {user.name}
             </Button>
+              <IconButton onClick={handleMenuOpen} color="inherit">
+                <Avatar alt={user.name} src={user.picture} />
+              </IconButton>
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
