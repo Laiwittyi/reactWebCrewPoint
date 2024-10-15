@@ -32,9 +32,9 @@ const DialogView = ({ dialogTitle, dialogBody, isOpen, deleteCallBackfunction, o
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>CANCLE</Button>
+        <Button onClick={onClose}>いいえ</Button>
         <Button onClick={deleteCallBackfunction}>
-          OK
+          はい
         </Button>
       </DialogActions>
     </Dialog>

@@ -6,38 +6,31 @@ import AppBar from './AppBar2.js';
 import FormComponent from './FormComponent';
 import AllRequestedView from './View.js'
 import Home from './Home.js';
-import Post from './components/Post.js';
-// import * as ReactDOM from "react-dom/client";
-// import {
-//   createBrowserRouter,
-//   RouterProvider,
-// } from "react-router-dom";
-
-// const router = createBrowserRouter([
-//   {
-//     path:"/",
-//     element:<h2>Hello From Skylark!</h2>
-//   }
-// ]);
-// ReactDOM.createRoot(document.getElementById("root")).render(
-//   <React.StrictMode>
-//     <RouterProvider router={router}/>
-//   </React.StrictMode>
-// );
-// function MyButton({ count, onClick }) {
-//   return (
-//     <button onClick={onClick}>
-//       Clicked {count} times
-//     </button>
-//   );
-// }
+import Signup from './SignUp.js';
+import GoogleLoginButton from './GoogleLoginButton.js';
+import DialogView from './DialogView.js';
 function App() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
   const [count, setCount] = useState(0);
+  const [user, setUser] = useState(null);
+  const [isOpenLogoutDialog, setIsOpenLogoutDialog] = useState(false);
+  useEffect(() => {
+    const email = localStorage.getItem("info");
+    if (email) {
+      // Set user state if email is found
+      let userObj = JSON.parse(email);
+      setUser(userObj);
+    }
+  }, []);
   function handleClick() {
     setCount(count + 1);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("info");
+    setIsOpenLogoutDialog(false);
+    setUser(null);
+
   }
 
   // useEffect(() => {
@@ -77,13 +70,16 @@ function App() {
 
   return (
     <Router>
-      <ResponsiveAppBar />
+      <ResponsiveAppBar user={user} handleLogout={() => setIsOpenLogoutDialog(true)} />
+      {isOpenLogoutDialog && <DialogView dialogTitle={"ログアウト"} dialogBody={"ログアウトしようとしています。よろしいでしょうか?"}
+        isOpen={isOpenLogoutDialog} deleteCallBackfunction={() => { handleLogout(); }} onClose={() => setIsOpenLogoutDialog(false)}
+      />}
       <Routes>
-        <Route path='/' element={<Home />}></Route>
-        <Route path='/view' element={<AllRequestedView />}></Route>
-        <Route path='/request' element={<FormComponent />}></Route>
-        <Route path='/modified' element={<h2>Point Modified</h2>}></Route>
-        <Route path='/:post_id' element={<Post />} />
+        <Route path='/' element={<Home user={user} />}></Route>
+        <Route path='/view' element={<AllRequestedView user={user} />}></Route>
+        <Route path='/request' element={<FormComponent user={user} />}></Route>
+        <Route path='/signUp' element={<Signup />} />
+        <Route path='/gooleLoginButton' element={<GoogleLoginButton setUser={setUser} />}></Route>
       </Routes>
     </Router>
   )

@@ -1,17 +1,17 @@
 import React from 'react';
 import Rainbow from './hoc/Rainbow';
 
-const Home = () => {
+const Home = ({ user }) => {
     return (
         <div
             style={{
                 display: 'flex',
                 justifyContent: 'center', // Center horizontally
                 alignItems: 'center',     // Center vertically
-                height: '100vh',          // Full viewport height to center the text vertically
+                // Full viewport height to center the text vertically
             }}
         >
-            <h2>すかいらーくクルーポイントからようこそ</h2>
+            <h2>{user ? user.name + "様、" : ''}すかいらーくクルーポイントからようこそ</h2>
 
         </div>
     )

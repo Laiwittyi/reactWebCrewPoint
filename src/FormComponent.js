@@ -7,7 +7,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import format from 'date-fns/format';
 import dayjs from 'dayjs';
-const FormComponent = () => {
+import { useNavigate } from 'react-router-dom';
+const FormComponent = ({ user }) => {
+  const navigate = useNavigate();
   const [dataList, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState('');
@@ -38,7 +40,7 @@ const FormComponent = () => {
       })
       .catch((error) => {
         console.error('Error fetching BigQuery data:', error);
-        setError(error);
+        //setError(error);
         setLoading(false);
       });
   }, []);
@@ -128,19 +130,9 @@ const FormComponent = () => {
       setError('Error during validation or insertion');
     }
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const res = await axios.post('http://localhost:5000/api/submit', formData);
-  //     console.log(res.data.message);
-  //     setResponse(res.data.message);
-  //     handleClear()
-  //   } catch (error) {
-  //     setResponse('Error submitting data');
-  //     //console.error('Error submitting form data:', error);
-  //   }
-  // };
+  if (!user) {
+    navigate("/");
+  }
   if (loading) {
     return <div>Loading...</div>;
   }
