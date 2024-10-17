@@ -22,6 +22,7 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
   const [isOpenDataUpdateDialog, setOpenOrNotDataUpdateDialog] = useState(false);
   const [toUpdateData, setToUpdateData] = useState('');
   const [updatePointType, setUpdatePointType] = useState();
+  const [toUpdateDate, setToUpdateDate] = useState();
   const [forceRender, setForceRender] = useState(false);
 
   const theme = useTheme();
@@ -46,7 +47,7 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
       newDataObj[value] = convertDataObj[key];
     });
     setToUpdateData(newDataObj);
-    handleOpenUpdateDataDialog(convertDataObj.PointTypeID);
+    handleOpenUpdateDataDialog(convertDataObj.PointTypeID, convertDataObj.Date);
   }
 
   const processRowUpdate = async (updatedData) => {
@@ -76,8 +77,9 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
     handleOpenDialog();
   };
 
-  const handleOpenUpdateDataDialog = (pointType) => {
+  const handleOpenUpdateDataDialog = (pointType, Date) => {
     setUpdatePointType(pointType);
+    setToUpdateDate(Date.value);
     setOpenOrNotDataUpdateDialog(true)
   };
   const handleCloseUpdateDataDialog = () => {
@@ -135,7 +137,7 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
         isOpen={isDialogOpen} deleteCallBackfunction={() => { handleRowDelete(); }} onClose={handleCloseDialog}
       />}
       {
-        isOpenDataUpdateDialog && < DataUpdatedDialog handleSubmitParam={processRowUpdate} pointType={updatePointType} dataList={toUpdateData} handleClose={handleCloseUpdateDataDialog} isOpen={isOpenDataUpdateDialog} />
+        isOpenDataUpdateDialog && < DataUpdatedDialog handleSubmitParam={processRowUpdate} pointType={updatePointType} dataList={toUpdateData} handleClose={handleCloseUpdateDataDialog} isOpen={isOpenDataUpdateDialog} DateParam={toUpdateDate} />
       }
       <Paper>
         <PaginatedTable data={tableDataList} rowsPerPage={rowsPerPage} currentPage={page}

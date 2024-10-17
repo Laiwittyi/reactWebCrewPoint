@@ -63,6 +63,21 @@ where pr.PointTypeID is not null  order by CreatedAt ASC
     res.status(500).send(error.toString());
   }
 });
+app.get('/allCrewList', async (req, res) => {
+  const getQuery = `
+    SELECT DISTINCT EmployeeID, EmployeeName 
+    FROM \`lwybigqueryproject.temp_dataset.SmartHR_20240401\`
+  `;
+
+  try {
+    // Pass the query string in an object with the key 'query'
+    const [job] = await bigquery.createQueryJob({ query: getQuery });
+    const [rows] = await job.getQueryResults();
+    res.json(rows);
+  } catch (error) {
+    res.status(500).send(error.toString());
+  }
+});
 
 app.post('/api/validate', async (req, res) => {
 
@@ -106,12 +121,15 @@ app.post('/update-row', async (req, res) => {
     const guid = passParam["Row ID"];
     console.log(guid);
     const employeeName = passParam["Employee Name"];
-    const PointTypeID = parseInt(passParam["PointTypeID"]);
+    const DateParam = passParam["Date"];
+
+
+    console.log(DateParam);
     const updateQuery = `update \`lwybigqueryproject.temp_dataset.PointRequestNew\` 
                         set AuthorityEmployeeId=@requestEmployeeId
                         , RequestEmployeeId=@employeeId
                         , RequestEmployeeName=@employeeName
-                        , PointTypeID=@PointTypeID where ID=@guid
+                        ,Date=CAST(TIMESTAMP(@DateParam) AS DATETIME)  where ID=@guid
                         and CreatedAt < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR);`;
 
     const options = {
@@ -120,8 +138,8 @@ app.post('/update-row', async (req, res) => {
         requestEmployeeId: requestEmployeeId,
         employeeId: employeeId,
         employeeName: employeeName,
-        PointTypeID: PointTypeID,
-        guid: guid
+        guid: guid,
+        DateParam: DateParam
       }
     };
     const [job] = await bigquery.createQueryJob(options);
@@ -136,8 +154,8 @@ app.post('/api/submit', async (req, res) => {
 
   console.log('Invoke submit')
   console.log(req.body)
-  const { requestEmployeeId, employeeId, employeeName, pointAmount, PointTypeID, SelectedDate } = req.body;
-  if (!requestEmployeeId || !employeeId || !employeeName || !PointTypeID || !SelectedDate) {
+  const { requestEmployeeId, employeeId, employeeName, pointAmount, SelectedDate } = req.body;
+  if (!requestEmployeeId || !employeeId || !employeeName || !SelectedDate) {
     res.status(500).json({ message: 'EmptyValueInclude' });
   }
   // if(!SelectedDate){
@@ -158,7 +176,7 @@ app.post('/api/submit', async (req, res) => {
       "RequestEmployeeName": employeeName,
       "Point": 500,
       "Date": submittedDate,
-      "PointTypeID": PointTypeID,
+      "PointTypeID": 1,
       "Status": postRowStatus,
       "CreatedAt": timestamp
     }];
