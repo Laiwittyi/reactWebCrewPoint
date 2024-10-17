@@ -15,19 +15,34 @@ import AdbIcon from '@mui/icons-material/Adb';
 // import FormComponent from './FormComponent';
 // import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-const pages = ['Request', 'View'];
+const pages = ['Request', 'View',];
+const pagesBeforeLogin = ['gooleLoginButton']
 const displayName = {
   'Request': 'リクエスト',
-  'View': 'リクエストされたすべてのリスト'
+  'View': 'リクエストされたすべてのリスト',
+  'SignUp': 'サインアップ',
+  'Login': 'ログイン',
+  'gooleLoginButton': 'ログイン',
+  'Logout': 'ログアウト'
+
 }
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 
 
-
-function ResponsiveAppBar() {
+const ResponsiveAppBar = ({ user, handleLogout }) => {
+  console.log(user);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -92,17 +107,32 @@ function ResponsiveAppBar() {
                 <MenuItem key={"view"}><Link to="/view"><Typography sx={{textAlign:'center'}}>View</Typography></Link></MenuItem>
                 <MenuItem key={"modified"}><Link to="/modified"><Typography sx={{textAlign:'center'}}>Modified</Typography></Link></MenuItem> */}
 
-              {pages.map((page) => (
+              {user && pages.map((page) => (
                 <MenuItem key={page} onClick={() => navigate('/' + page)}>
                   <Typography sx={{ textAlign: 'center' }}>{displayName[page]}</Typography>
                 </MenuItem>
               ))}
-              <MenuItem>
-                <Button color="inherit">ログイン</Button>
-              </MenuItem>
-              <MenuItem>
-                <Button color="inherit">サインアップ</Button>
-              </MenuItem>
+              {user && <MenuItem >
+                <Typography onClick={handleMenuOpen} variant="body1" sx={{ marginRight: 2 }}>
+                  {user.name || user.email}
+                </Typography>
+                <IconButton onClick={handleMenuOpen} color="inherit">
+                  <Avatar alt={user.name} src={user.picture} />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+                {/* <Typography sx={{ textAlign: 'center' }}>ログアウト</Typography> */}
+              </MenuItem>}
+              {!user && pagesBeforeLogin.map((page) => (
+                <MenuItem key={page} onClick={() => navigate('/' + page)}>
+                  <Typography sx={{ textAlign: 'center' }}>{displayName[page]}</Typography>
+                </MenuItem>
+              ))}
             </Menu>
           </Box>
 
@@ -137,7 +167,7 @@ function ResponsiveAppBar() {
           <Button key={"view"}  sx={{ my: 2, color: 'white', display: 'block' }}><Link to="/view">View</Link></Button>
           <Button key={"modified"}  sx={{ my: 2, color: 'white', display: 'block' }}><Link to="/modified">Modified</Link></Button> */}
 
-            {pages.map((page) => (
+            {user && pages.map((page) => (
               <Button
                 key={page}
                 onClick={() => navigate('/' + page)}
@@ -146,8 +176,31 @@ function ResponsiveAppBar() {
                 {displayName[page]}
               </Button>
             ))}
-            <Button color="inherit">ログイン</Button>
-            <Button color="inherit">サインアップ</Button>
+            {user && <> <Button
+              onClick={handleMenuOpen}
+              sx={{ my: 2, color: 'white', display: 'block' }}
+            >
+              {user.name}
+            </Button>
+              <IconButton onClick={handleMenuOpen} color="inherit">
+                <Avatar alt={user.name} src={user.picture} />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
+              </Menu></>}
+            {!user && pagesBeforeLogin.map((page) => (
+              <Button
+                key={page}
+                onClick={() => navigate('/' + page)}
+                sx={{ my: 2, color: 'white', display: 'block' }}
+              >
+                {displayName[page]}
+              </Button>
+            ))}
           </Box>
 
           {/* <Routes>

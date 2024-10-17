@@ -2,6 +2,8 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { BigQuery } = require('@google-cloud/bigquery');
+const { OAuth2Client } = require("google-auth-library");
+const verfityClient = new OAuth2Client("345268998486-b5q60ibbcn446c8egalgcdveuggthdtq.apps.googleusercontent.com");
 
 //const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -19,10 +21,10 @@ app.use(cors());
 
 // Initialize BigQuery client
 const bigquery = new BigQuery({
-  projectId: 'sk-dev-employee-point',
+  projectId: 'lwybigqueryproject',
   keyFilename: 'lwy_skl.json',
 });
-const datasetId = 'crew_poins_copy_bylwy'
+const datasetId = 'temp_dataset'
 const tableId = 'PointRequestNew'
 
 // Define an API route to run a BigQuery query
@@ -31,7 +33,7 @@ app.get('/bigquery', async (req, res) => {
   console.log('Invoke PointType')
   const query = `
     SELECT *
-    FROM \`sk-dev-employee-point.crew_poins_copy_bylwy.PointType\`
+    FROM \`lwybigqueryproject.temp_dataset.PointType\`
     WHERE Type='EARN' 
   `;
 
@@ -40,14 +42,15 @@ app.get('/bigquery', async (req, res) => {
     const [rows] = await job.getQueryResults();
     res.json(rows);
   } catch (error) {
+
     res.status(500).send(error.toString());
   }
 });
 app.get('/allRequestedView', async (req, res) => {
   console.log('Invoke allRequestView')
   const query = `
-SELECT pt.PointMultiplier, pt.PointTypeName,pr.* FROM \`sk-dev-employee-point.crew_poins_copy_bylwy.PointRequestNew\` as pr
-left join \`sk-dev-employee-point.crew_poins_copy_bylwy.PointType\` as pt
+SELECT pt.PointMultiplier, pt.PointTypeName,pr.* FROM \`lwybigqueryproject.temp_dataset.PointRequestNew\` as pr
+left join \`lwybigqueryproject.temp_dataset.PointType\` as pt
 on SAFE_CAST(pt.PointTypeID AS INT64) = pr.PointTypeID
 where pr.PointTypeID is not null  order by CreatedAt ASC
   `;
@@ -60,11 +63,7 @@ where pr.PointTypeID is not null  order by CreatedAt ASC
     res.status(500).send(error.toString());
   }
 });
-// app.post('/api/submit', (req, res) => {
-//     // Handle the data submission
-//     console.log('Data received:', req.body);
-//     res.status(200).json({ success: true, message: 'Data received successfully' });
-//   });
+
 app.post('/api/validate', async (req, res) => {
 
   console.log('Invoke Validate')
@@ -74,26 +73,12 @@ app.post('/api/validate', async (req, res) => {
   console.log(employeeId);
 
   const validateQuery = `
-select count(Point) as totalRow from \`sk-dev-employee-point.crew_poins_copy_bylwy.PointRequestNew\`
+select count(Point) as totalRow from \`lwybigqueryproject.temp_dataset.PointRequestNew\`
 WHERE EXTRACT(YEAR FROM Date) = EXTRACT(YEAR FROM CURRENT_DATETIME())
   AND EXTRACT(MONTH FROM Date) = EXTRACT(MONTH FROM CURRENT_DATETIME())
   and RequestEmployeeId= @employeeId
   and PointTypeID is not null
 `
-  //   const validateQuery = `
-  //   select *
-  // from (
-  // select sum(result_table.perGetPointByRate) as TotalPoint,result_table.RequestEmployeeId from
-  // (SELECT t.PointMultiplier*Point as perGetPointByRate,r.* FROM \`sk-dev-employee-point.crew_poins_copy_bylwy.PointRequestNew\` as r
-  // left join \`sk-dev-employee-point.crew_poins_copy_bylwy.PointType\` as t
-  // on r.PointTypeID =  t.PointTypeID) as result_table
-  // WHERE EXTRACT(YEAR FROM result_table.Date) = EXTRACT(YEAR FROM CURRENT_DATETIME())
-  //   AND EXTRACT(MONTH FROM result_table.Date) = EXTRACT(MONTH FROM CURRENT_DATETIME())
-  //   and result_table.RequestEmployeeId= @employeeId
-  //   group by RequestEmployeeId
-  // )
-  // where TotalPoint>=6000
-  //     `;
   const validateOption = {
     query: validateQuery,
     params: { employeeId: employeeId },
@@ -104,11 +89,6 @@ WHERE EXTRACT(YEAR FROM Date) = EXTRACT(YEAR FROM CURRENT_DATETIME())
     const [rows] = await job.getQueryResults();
     console.log("row" + rows[0]);
     res.json(rows[0]);
-    // if (rows[0] >= 6) {
-    //   res.json({ exists: true });
-    // } else {
-    //   res.json({ exists: false });
-    // }
   } catch (err) {
     console.error('Validation error:', err.stack);
     res.status(500).json({ error: 'Validation failed' });
@@ -127,7 +107,7 @@ app.post('/update-row', async (req, res) => {
     console.log(guid);
     const employeeName = passParam["Employee Name"];
     const PointTypeID = parseInt(passParam["PointTypeID"]);
-    const updateQuery = `update \`sk-dev-employee-point.crew_poins_copy_bylwy.PointRequestNew\` 
+    const updateQuery = `update \`lwybigqueryproject.temp_dataset.PointRequestNew\` 
                         set AuthorityEmployeeId=@requestEmployeeId
                         , RequestEmployeeId=@employeeId
                         , RequestEmployeeName=@employeeName
@@ -203,7 +183,7 @@ app.post('/delete-row', async (req, res) => {
   console.log('Invoke delete')
   const { toDeleteRowID } = req.body;
   const deleteQuery = `
-    DELETE FROM \`sk-dev-employee-point.crew_poins_copy_bylwy.PointRequestNew\`
+    DELETE FROM \`lwybigqueryproject.temp_dataset.PointRequestNew\`
     WHERE ID = @toDeleteRowID
   `
   const options = {
@@ -222,4 +202,25 @@ app.post('/delete-row', async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
+});
+
+async function verifyToken(idToken) {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: "345268998486-b5q60ibbcn446c8egalgcdveuggthdtq.apps.googleusercontent.com",  // Specify your client ID
+  });
+
+  const payload = ticket.getPayload();  // This contains user information
+  return payload;  // You can now extract name, email, picture, etc.
+}
+
+app.post("/verify", async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const userInfo = await verifyToken(token);
+    res.status(200).send(userInfo);
+  } catch (error) {
+    res.status(400).send("Invalid token");
+  }
 });

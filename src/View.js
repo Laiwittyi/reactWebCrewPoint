@@ -8,15 +8,7 @@ import { useTheme } from '@mui/material/styles';
 import DialogView from './DialogView.js';
 import PaginatedTable from './PaginatedTable.js';
 import DataUpdatedDialog from './DataUpdateDialog.js';
-
-
-// const formatDate = (bigQueryDate) => {
-//   const date = new Date(bigQueryDate);
-//   return moment(date).format('YYYY/MM/DD'); // Custom format: MM/DD/YYYY
-// };
-
-
-
+import { useNavigate } from 'react-router-dom';
 const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
   const [tableDataList, setTableDataList] = useState(rows);
   const [page, setPage] = useState(0);
@@ -139,7 +131,7 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
       </Backdrop>}
       {error && <Alert variant="filled" severity="error" onClose={() => { setError('') }}>{error}</Alert>}
       {message && <Alert variant="filled" severity="success" onClose={() => { setMessage('') }}>{message}</Alert>}
-      {isDialogOpen && <DialogView dialogTitle={"Deleting Point Transaction"} dialogBody={"You are about to deleting row.Are you sure?"}
+      {isDialogOpen && <DialogView dialogTitle={"ポイント取引の削除"} dialogBody={"行を削除しようとしています。本当によろしいでしょうか?"}
         isOpen={isDialogOpen} deleteCallBackfunction={() => { handleRowDelete(); }} onClose={handleCloseDialog}
       />}
       {
@@ -156,7 +148,8 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
   );
 };
 
-const AllRequestedView = () => {
+const AllRequestedView = ({ user }) => {
+  const navigate = useNavigate();
   const [requestedPointDataList, setRequestedPointDataList] = useState([]);
   const [loading, setLoading] = useState(true);
   const columns = [
@@ -208,6 +201,9 @@ const AllRequestedView = () => {
     // Fetch data from the Node.js backend
     fetchData();
   }, []);
+  if (!user) {
+    navigate("/");
+  }
   if (loading) {
     return (
       <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
