@@ -63,6 +63,23 @@ where pr.PointTypeID is not null  order by CreatedAt ASC
     res.status(500).send(error.toString());
   }
 });
+
+app.get('/allShopInformation', async (req, res) => {
+  const getQuery = `
+    SELECT \`店舗コード\` as ShopCode,\`店舗名漢字\` as ShopName
+    FROM \`lwybigqueryproject.temp_dataset.all_shop_information\`
+  `;
+
+  try {
+    // Pass the query string in an object with the key 'query'
+    const [job] = await bigquery.createQueryJob({ query: getQuery });
+    const [rows] = await job.getQueryResults();
+    res.json(rows);
+  } catch (error) {
+    res.status(500).send(error.toString());
+  }
+});
+
 app.get('/allCrewList', async (req, res) => {
   const getQuery = `
     SELECT DISTINCT EmployeeID, EmployeeName 

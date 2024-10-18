@@ -9,6 +9,7 @@ import Home from './Home.js';
 import Signup from './SignUp.js';
 import GoogleLoginButton from './GoogleLoginButton.js';
 import DialogView from './DialogView.js';
+import { deleteData, storeName, key } from './utils/indexedDB.js';
 function App() {
 
   const [count, setCount] = useState(0);
@@ -26,7 +27,8 @@ function App() {
     setCount(count + 1);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await deleteData(storeName, key)
     localStorage.removeItem("info");
     setIsOpenLogoutDialog(false);
     setUser(null);

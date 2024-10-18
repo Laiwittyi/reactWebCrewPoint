@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
-  Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions, MenuItem, Select, FormControl, InputLabel
+  Alert, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import { shouldDisabledDate } from './utils';
+import Grid from '@mui/material/Grid2';
+import { searchCrewListById } from './utils';
 
 const DataUpdatedDialog = ({ dataList, handleClose, isOpen, pointType, handleSubmitParam, DateParam }) => {
   console.log("pointType * " + JSON.stringify(dataList))
@@ -29,25 +30,22 @@ const DataUpdatedDialog = ({ dataList, handleClose, isOpen, pointType, handleSub
   }
   const [formData, setFormData] = useState(initialState);
   const [selectedDate, setSelectedData] = useState(dayjs(DateParam));
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    // // Fetch data from the Node.js backend
-    // axios.get('http://localhost:5000/bigquery')
-    //   .then((response) => {
-    //     console.log(response)
-    //     setData(response.data);
-    //     //setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error fetching BigQuery data:', error);
-    //     setError(error);
-    //     //setLoading(false);
-    //   });
-  }, []);
-  // const handleChange = (event) => {
-  //   setOriginalPointType(event.target.value);
-  // };
+
+  const handleSearch = async () => {
+    let findEmployeeObj = await searchCrewListById(formData['Employee ID']);
+    if (findEmployeeObj[0]) {
+      setFormData((prevData) => ({ ...prevData, ["Employee Name"]: findEmployeeObj[1] }));
+    } else {
+      setError(findEmployeeObj[1]);
+    }
+  }
   const handleSubmit = () => {
+    if (!formData["Employee Name"]) {
+      setError("従業員が存在するかどうかを確認する必要があります。まず、提出ボタンをクリックする前に確認ボタンをクリックしてください。")
+      return;
+    }
     if (selectedDate) {
       formData["Date"] = selectedDate;
     }
@@ -55,7 +53,9 @@ const DataUpdatedDialog = ({ dataList, handleClose, isOpen, pointType, handleSub
   }
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+    if (name === "Employee ID") {
+      setFormData((prevData) => ({ ...prevData, ["Employee Name"]: '' }));
+    }
     console.log(e.target)
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     console.log(formData)
@@ -70,18 +70,43 @@ const DataUpdatedDialog = ({ dataList, handleClose, isOpen, pointType, handleSub
           Point Update
         </DialogTitle>
         <DialogContent>
-          {Object.entries(dataList).map(([key, value]) => (
-            <TextField
-              disabled={key === 'Row ID' || key === "Point Amount"}
-              label={UILABLE[key]}
-              name={key}
-              fullWidth
-              margin="normal"
-              value={formData[key]}
-              onChange={handleInputChange}
-              required
-            />
-          ))}
+          {error && <Alert variant="filled" severity="error" onClose={() => { setError('') }}>{error}</Alert>}
+          <Grid container spacing={2}>
+            {Object.entries(dataList).map(([key, value]) => (
+              key === 'Employee ID' ? (
+                <>
+                  <Grid size={10}>
+                    <TextField
+                      label={UILABLE[key]}
+                      name={key}
+                      fullWidth
+                      margin='dense'
+                      value={formData[key]}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </Grid>
+                  <Grid size={2} display="flex" justifyContent="center" alignItems="center" >
+                    <Button variant="contained" color="primary" onClick={handleSearch}>
+                      確認
+                    </Button>
+                  </Grid>
+                </>
+              ) :
+                <Grid size={12}>
+                  <TextField
+                    disabled={key === 'Row ID' || key === "Point Amount" || key === 'Employee Name'}
+                    label={UILABLE[key]}
+                    name={key}
+                    fullWidth
+                    margin='dense'
+                    value={formData[key]}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Grid>
+            ))}
+          </Grid>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="日付"
