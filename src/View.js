@@ -9,6 +9,7 @@ import DialogView from './DialogView.js';
 import PaginatedTable from './PaginatedTable.js';
 import DataUpdatedDialog from './DataUpdateDialog.js';
 import { useNavigate } from 'react-router-dom';
+import { currentLogInUserEmailFromStorage } from './utils/indexedDB.js';
 const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
   const [tableDataList, setTableDataList] = useState(rows);
   const [page, setPage] = useState(0);
@@ -51,6 +52,7 @@ const ResponsiveTable = ({ rows, columns, fetchAllListFun }) => {
   }
 
   const processRowUpdate = async (updatedData) => {
+
     setLoading(true);
     try {
       handleCloseUpdateDataDialog();
@@ -186,7 +188,10 @@ const AllRequestedView = ({ user }) => {
   ];
   const fetchData = async () => {
     setLoading(true);
-    axios.get('http://localhost:5000/allRequestedView')
+    let params = {
+      email: currentLogInUserEmailFromStorage()
+    }
+    axios.get('http://localhost:5000/allRequestedView', { params })
       .then((response) => {
         console.log(response)
         setRequestedPointDataList(response.data);

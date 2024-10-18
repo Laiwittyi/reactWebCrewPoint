@@ -10,6 +10,7 @@ import Signup from './SignUp.js';
 import GoogleLoginButton from './GoogleLoginButton.js';
 import DialogView from './DialogView.js';
 import { deleteData, storeName, key } from './utils/indexedDB.js';
+import { ReactTableView } from './ReactTableView.js';
 function App() {
 
   const [count, setCount] = useState(0);
@@ -82,6 +83,7 @@ function App() {
         <Route path='/request' element={<FormComponent user={user} />}></Route>
         <Route path='/signUp' element={<Signup />} />
         <Route path='/gooleLoginButton' element={<GoogleLoginButton setUser={setUser} />}></Route>
+        <Route path='/sample' element={<ReactTableView />}></Route>
       </Routes>
     </Router>
   )

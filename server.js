@@ -48,15 +48,22 @@ app.get('/bigquery', async (req, res) => {
 });
 app.get('/allRequestedView', async (req, res) => {
   console.log('Invoke allRequestView')
+  console.log("req :" + req)
+  const { email } = req.query;
+  console.log("email" + email)
   const query = `
 SELECT pt.PointMultiplier, pt.PointTypeName,pr.* FROM \`lwybigqueryproject.temp_dataset.PointRequestNew\` as pr
 left join \`lwybigqueryproject.temp_dataset.PointType\` as pt
 on SAFE_CAST(pt.PointTypeID AS INT64) = pr.PointTypeID
-where pr.PointTypeID is not null  order by CreatedAt ASC
+where pr.PointTypeID is not null and pr.CreatorEmail=@email  order by CreatedAt ASC
   `;
 
+  const allRequestedDataQuery = {
+    query: query,
+    params: { email: email },
+  }
   try {
-    const [job] = await bigquery.createQueryJob({ query });
+    const [job] = await bigquery.createQueryJob(allRequestedDataQuery);
     const [rows] = await job.getQueryResults();
     res.json(rows);
   } catch (error) {
@@ -171,7 +178,7 @@ app.post('/api/submit', async (req, res) => {
 
   console.log('Invoke submit')
   console.log(req.body)
-  const { requestEmployeeId, employeeId, employeeName, pointAmount, SelectedDate } = req.body;
+  const { requestEmployeeId, employeeId, employeeName, pointAmount, SelectedDate, ShopCode, Email } = req.body;
   if (!requestEmployeeId || !employeeId || !employeeName || !SelectedDate) {
     res.status(500).json({ message: 'EmptyValueInclude' });
   }
@@ -195,7 +202,9 @@ app.post('/api/submit', async (req, res) => {
       "Date": submittedDate,
       "PointTypeID": 1,
       "Status": postRowStatus,
-      "CreatedAt": timestamp
+      "CreatedAt": timestamp,
+      "ShopCode": ShopCode,
+      "CreatorEmail": Email
     }];
     console.log("rows : " + rows);
 

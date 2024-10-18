@@ -44,6 +44,12 @@ export const getAllFromIndexedDB = async (dynamicStoreNameList) => {
     );
     const mergedTempList = Object.assign({}, ...tempList);
     return mergedTempList;
+    // forEach(dynamicStoreNameList, async function (dynamicStoreName) {
+    //     let obj = {};
+    //     obj[dynamicStoreName] = await db.getAll(dynamicStoreName);
+    //     tempList.push(obj);
+    // });
+    // return tempList;
 };
 
 export const saveToIndexedDB = async (data, dynamicStoreName, dynamicKey) => {
@@ -54,6 +60,11 @@ export const saveToIndexedDB = async (data, dynamicStoreName, dynamicKey) => {
     // Save data under the key 'crew'
     await store.put(data, dynamicKey);
     await tx.done;
+};
+
+export const getForageDataByKey = async (dynamicStoreName, dynamicKey) => {
+    const db = await openDatabase(new Array(dynamicStoreName));
+    return await db.get(dynamicStoreName, dynamicKey);
 };
 
 export const getCrewData = async () => {
@@ -103,4 +114,13 @@ export async function searchCrewListById(id) {
     const result = _.find(crewList, { EmployeeID: id },);
     console.log(result);
     return (!result ? [false, '社員コードを持つ社員がいません！'] : [true, result.EmployeeName])
+}
+
+export function currentLogInUserEmailFromStorage() {
+    const user = localStorage.getItem("info");
+    if (!user) {
+        return '';
+    }
+    let userObj = JSON.parse(user);
+    return userObj.email;
 }

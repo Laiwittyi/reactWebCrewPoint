@@ -9,7 +9,9 @@ import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import Grid from '@mui/material/Grid2';
 import _ from 'lodash';
-import { getCrewData } from './utils';
+import { getCrewData, getForageDataByKey, ALL_SHOP_INFORMATION_KEY, ALL_SHOP_INFORMATION_TABLE, currentLogInUserEmailFromStorage } from './utils';
+import AsyncSelect from 'react-select/async';
+
 const FormComponent = ({ user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -20,10 +22,26 @@ const FormComponent = ({ user }) => {
   const currentMonth = dayjs().month();
   const currentYear = dayjs().year();
   const [crewList, setCrewList] = useState('');
+  const [allShopInfo, setAllShopInfo] = useState('');
+  const [shopCode, setShopCode] = useState('');
 
   const shouldDisabledDate = (date) => {
     return date.month() !== currentMonth || date.year() !== currentYear;
   }
+
+  const loadOptions = (inputValue) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(
+          allShopInfo.filter(option =>
+            option.ShopName.toLowerCase().includes(inputValue.toLowerCase()) || option.ShopCode == inputValue
+          )
+        );
+      }, 1000);
+    });
+  };
+
+
   useEffect(() => {
     // Fetch data from the Node.js backend
     const getCrewListFromIndexDb = async () => {
@@ -31,6 +49,10 @@ const FormComponent = ({ user }) => {
         await getCrewData().then((data) => {
           console.log(data);
           setCrewList(data);
+        });
+        await getForageDataByKey(ALL_SHOP_INFORMATION_TABLE, ALL_SHOP_INFORMATION_KEY).then((data) => {
+          console.log(data);
+          setAllShopInfo(data);
         });
       } catch (error) {
         console.error(error);
@@ -60,6 +82,10 @@ const FormComponent = ({ user }) => {
       setSearchEmployeeName(result.EmployeeName)
     }
   };
+  const handleShopCodeSelect = (newValue) => {
+    console.log(newValue)
+    setShopCode(newValue)
+  }
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "picker") {
@@ -83,6 +109,12 @@ const FormComponent = ({ user }) => {
       if (res.data && res.data.totalRow && res.data.totalRow >= 6) {
         setError('Already reach limited point amount!');
       } else {
+        let currentLoginUserEmail = currentLogInUserEmailFromStorage();
+        if (!currentLoginUserEmail) {
+          setError('Current Login User Email address is not found!')
+          return;
+        }
+        formData["Email"] = currentLoginUserEmail;
         if (selectedDate) {
           const formattedDate = selectedDate.toISOString();
           formData["SelectedDate"] = formattedDate;
@@ -91,6 +123,12 @@ const FormComponent = ({ user }) => {
           formData["employeeName"] = searchEmployeeName
         } else {
           setError("従業員が存在するかどうかを確認する必要があります。まず、提出ボタンをクリックする前に確認ボタンをクリックしてください。")
+          return;
+        }
+        if (shopCode && shopCode.ShopCode) {
+          formData["ShopCode"] = shopCode.ShopCode
+        } else {
+          setError("店舗を選択してください");
           return;
         }
         const insertData = await axios.post('http://localhost:5000/api/submit', formData);
@@ -161,6 +199,16 @@ const FormComponent = ({ user }) => {
             </Button>
           </Grid>
         </Grid>
+        <AsyncSelect
+          cacheOptions
+          loadOptions={loadOptions}
+          defaultOptions={allShopInfo.slice(0, 50)}
+          getOptionLabel={(e) => "( " + e.ShopCode + " ) : " + e.ShopName}
+          getOptionValue={(e) => e.ShopCode}
+          onChange={(newValue) => handleShopCodeSelect(newValue)}
+          placeholder="コードまたは名前で店舗を検索"
+
+        />
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             label="日付"

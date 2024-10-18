@@ -39,6 +39,9 @@ const Home = ({ user }) => {
                 let keyList = [storeName, ALL_SHOP_INFORMATION_TABLE];
                 let dataListFromStorage = await getAllFromIndexedDB(keyList);
                 console.log(dataListFromStorage)
+                //setLoading(false);
+                // const crewListFromStorage = await getAllFromIndexedDB(storeName);
+                // const shopInfromationFromStorage = await getAllFromIndexedDB(ALL_SHOP_INFORMATION_TABLE);
                 const crewPointIsNotExist = dataListFromStorage[storeName].length <= 0;
                 const shopInformationIsNotExist = dataListFromStorage[ALL_SHOP_INFORMATION_TABLE].length <= 0;
                 if (crewPointIsNotExist || shopInformationIsNotExist) {
